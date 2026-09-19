@@ -1,0 +1,8 @@
+QUELVE — PACOTE PARA PUBLICAÇÃO
+
+O aplicativo precisa ser publicado em uma hospedagem HTTPS que execute Python.
+A chave do Gemini deve ser cadastrada como segredo da hospedagem, usando o nome GEMINI_API_KEY.
+Nunca coloque a chave dentro do arquivo index.html.
+
+Quando estiver publicado, abra o endereço no celular e escolha “Adicionar à tela inicial”
+(Android) ou “Adicionar à Tela de Início” (iPhone) para instalar como aplicativo.
