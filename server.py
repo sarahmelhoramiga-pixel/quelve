@@ -26,7 +26,7 @@ def gemini_answer(question, grade, source):
     payload = {
         "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 900},
+        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 8192},
     }
     req = Request(
         f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent",
@@ -69,9 +69,14 @@ class Handler(SimpleHTTPRequestHandler):
                 self._json(400, {"error": "empty_question"})
                 return
             self._json(200, gemini_answer(question, data.get("grade"), data.get("source")))
-        except (HTTPError, URLError, KeyError, ValueError, RuntimeError, TimeoutError):
+        except HTTPError as exc:
+            print(f"Gemini returned HTTP {exc.code}", flush=True)
             self._json(502, {"error": "ai_unavailable"})
-        except Exception:
+        except (URLError, KeyError, ValueError, RuntimeError, TimeoutError) as exc:
+            print(f"Gemini failure: {type(exc).__name__}", flush=True)
+            self._json(502, {"error": "ai_unavailable"})
+        except Exception as exc:
+            print(f"Server failure: {type(exc).__name__}", flush=True)
             self._json(500, {"error": "server_error"})
 
 
