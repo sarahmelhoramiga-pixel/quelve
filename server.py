@@ -41,6 +41,14 @@ def gemini_answer(question, grade, source):
 
 
 class Handler(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        # Always revalidate the app shell and worker after a deployment.
+        # This avoids serving older versions from browser or intermediary caches.
+        path = self.path.split("?", 1)[0]
+        if self.command in ("GET", "HEAD") and path in ("/", "/index.html", "/service-worker.js", "/manifest.webmanifest"):
+            self.send_header("Cache-Control", "no-store, max-age=0")
+        super().end_headers()
+
     def _json(self, status, body):
         raw = json.dumps(body, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
