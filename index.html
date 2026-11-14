@@ -2,9 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="google-site-verification" content="VULSPo57yRoK2WqIEKUkMKDjn9nZsBTBpX_adRDKZPM" />
+
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
+<meta name="description" content="Quelve é um aplicativo educacional gratuito que ajuda estudantes a entender matérias escolares passo a passo.">
+<link rel="canonical" href="https://sarahmelhoramiga-pixel.github.io/quelve/">
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="quelve">
@@ -25,6 +27,7 @@
 <footer class="composer-area"><nav class="tools" aria-label="Atalhos"><button class="tool" id="subjectBtn">📚 Matérias</button><button class="tool" id="studyBtn">✨ Estudar</button><button class="tool" id="writeBtn">✍️ Escrever</button><button class="tool" id="countBtn">💡 <span id="count">0</span> respostas</button></nav><div class="input-wrap"><button class="round-action" id="cameraBtn" aria-label="Fotografar questão" title="Fotografar questão">📷</button><textarea id="question" rows="1" placeholder="Manda sua dúvida para a quelve…" aria-label="Sua pergunta"></textarea><button class="round-action" id="micBtn" aria-label="Falar pergunta" title="Falar pergunta">🎙</button><button class="round-action send" id="sendBtn" aria-label="Enviar pergunta" title="Enviar pergunta">➤</button></div><div id="status" class="status" aria-live="polite"></div></footer>
 </div>
 <script>
+const API_BASE='https://quelve.onrender.com';
 const q=document.querySelector('#question'),statusEl=document.querySelector('#status'),conversation=document.querySelector('#conversation'),welcome=document.querySelector('#welcome'),countEl=document.querySelector('#count'),main=document.querySelector('#main');let count=0,stream=null,currentUtterance=null,currentSpeechStatus=null;
 function setStatus(t){statusEl.textContent=t}
 function showConversation(){welcome.classList.add('hidden');conversation.classList.remove('hidden')}
@@ -37,7 +40,7 @@ function renderAnswer(el,text){
   el.textContent=''; let last=0; const re=/\*\*(.+?)\*\*/gs; let m;
   while((m=re.exec(text))!==null){el.append(document.createTextNode(text.slice(last,m.index)));const strong=document.createElement('strong');strong.textContent=m[1];el.append(strong);last=re.lastIndex}el.append(document.createTextNode(text.slice(last).replace(/(^|\s)\*(?!\s)([^*\n]+)\*/g,'$1$2')));
 }
-async function send(textOverride){const text=(textOverride||q.value).trim();if(!text){setStatus('Escreva ou fale sua dúvida antes de enviar.');q.focus();return}q.value='';q.style.height='auto';const btn=document.querySelector('#sendBtn');btn.disabled=true;setStatus('');const ui=makeTurn(text);ui.status.textContent='A quelve está preparando sua explicação…';try{const res=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:text,grade:'não informado',source:'text'})});if(!res.ok)throw new Error('api');const data=await res.json();count++;countEl.textContent=count;renderAnswer(ui.answer,data.explanation||data.answer||'Não consegui montar a explicação.');ui.status.textContent='';}catch(e){ui.answer.textContent='Não consegui conectar agora. Confira sua internet e tente enviar de novo.';ui.status.textContent='';}finally{ui.play.disabled=false;btn.disabled=false;main.scrollTo({top:main.scrollHeight,behavior:'smooth'})}}
+async function send(textOverride){const text=(textOverride||q.value).trim();if(!text){setStatus('Escreva ou fale sua dúvida antes de enviar.');q.focus();return}q.value='';q.style.height='auto';const btn=document.querySelector('#sendBtn');btn.disabled=true;setStatus('');const ui=makeTurn(text);ui.status.textContent='A quelve está preparando sua explicação…';try{const res=await fetch(API_BASE+'/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:text,grade:'não informado',source:'text'})});if(!res.ok)throw new Error('api');const data=await res.json();count++;countEl.textContent=count;renderAnswer(ui.answer,data.explanation||data.answer||'Não consegui montar a explicação.');ui.status.textContent='';}catch(e){ui.answer.textContent='Não consegui conectar agora. Confira sua internet e tente enviar de novo.';ui.status.textContent='';}finally{ui.play.disabled=false;btn.disabled=false;main.scrollTo({top:main.scrollHeight,behavior:'smooth'})}}
 document.querySelector('#sendBtn').addEventListener('click',()=>send());q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});q.addEventListener('input',()=>{q.style.height='auto';q.style.height=Math.min(q.scrollHeight,120)+'px'});
 document.querySelectorAll('.suggestion').forEach(b=>b.addEventListener('click',()=>send(b.textContent.replace(/^\S+\s/,''))));
 document.querySelector('#newChatBtn').addEventListener('click',()=>{stopSpeech();conversation.innerHTML='';conversation.classList.add('hidden');welcome.classList.remove('hidden');q.value='';setStatus('');main.scrollTop=0});document.querySelector('#menuBtn').addEventListener('click',()=>setStatus('A quelve está pronta para estudar com você.'));document.querySelector('#subjectBtn').addEventListener('click',()=>{q.value='Quero estudar matemática, português, ciências, história ou outra matéria. ';q.focus()});document.querySelector('#studyBtn').addEventListener('click',()=>{q.value='Me ajuda a estudar um assunto passo a passo: ';q.focus()});document.querySelector('#writeBtn').addEventListener('click',()=>{q.value='Me ajuda a escrever ou revisar um texto sobre: ';q.focus()});

@@ -1,4 +1,4 @@
-const CACHE = 'quelve-v10';
+const CACHE = 'quelve-v11';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './quelve-perfil.jpg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
